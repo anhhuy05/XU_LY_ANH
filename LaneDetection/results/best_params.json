@@ -1,0 +1,16 @@
+{
+  "b_lo": 30,
+  "b_hi": 90,
+  "b_thresh": 25,
+  "use_norm": true,
+  "use_vote": true,
+  "sigma": 1.5,
+  "radius": 15,
+  "thr_scale": 0.45,
+  "delta": 6.0,
+  "smooth": 0.0,
+  "peak_nms": 3,
+  "p_roi_top": 0.55,
+  "p_roi_x_left": 0.35,
+  "p_roi_x_right": 0.6
+}
