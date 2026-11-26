@@ -1,0 +1,381 @@
+NHIEM VU CAC FILE CHINH TRONG DU AN LANE_DETECTION
+==================================================
+
+MA NGUON PYTHON
+---------------
+baseline.py
+  Cai dat detector baseline: Gaussian blur, Canny nguong co dinh va HoughLines cua OpenCV.
+
+config.py
+  Khai bao duong dan data/results, ROI, nguong danh gia va cac tham so cua detector.
+
+proposed.py
+  Cai dat detector P: chuan hoa chieu sang, phat hien canh thich nghi va Hough vote theo gradient.
+
+utils.py
+  Ham dung chung doc anh/nhan, tinh F1, danh gia theo tang, ve du doan va doc/ghi tham so.
+
+run_all.py
+  Dieu phoi cac buoc chinh: tao thong ke phan tang, chay E2, E1, E3 va E4.
+
+experiments\__init__.py
+  Danh dau experiments la package Python de chay cac module bang python -m.
+
+experiments\compare_images.py
+  Chon va xuat anh so sanh baseline voi P, kem F1 va so TP/FP/FN.
+
+experiments\e1_challenge.py
+  E1: danh gia baseline theo cac tang eval va luu mot so anh baseline nhan dien kem.
+
+experiments\e2_params.py
+  E2: quet tham so P tren dev, chon cau hinh va luu bang sweep, do thi, anh trung gian.
+
+experiments\e3_ablation.py
+  E3: so sanh P day du, P tat chuan hoa, P tat gradient voting va baseline.
+
+experiments\e4_breaking_point.py
+  E4: tao bong tong hop voi cac do sau khac nhau, do F1 va uoc tinh diem gay.
+
+experiments\export_all.py
+  Xuat anh ket qua va bang F1 tung anh cho tap du lieu duoc chon.
+
+tools\__init__.py
+  Danh dau tools la package Python de chay cac cong cu bang python -m.
+
+tools\make_stratification.py
+  Tinh thong ke anh, tang, video va do sang; ghi data/stratification.csv.
+
+tools\resplit_data.py
+  Chia lai anh va nhan tu raw thanh dev/eval theo video va muc do sang.
+
+CAU HINH VA TAI LIEU CHINH
+--------------------------
+results\best_params.json
+  Tham so detector duoc E2 chon; cac thi nghiem tiep theo doc cau hinh nay.
+
+README.md
+  Tai lieu tong quan ve bai toan, thuat toan, cai dat, cach chay va cac ket qua.
+
+data\README.md
+  Huong dan cau truc thu muc data va cach dat anh cung file nhan .lines.txt.
+
+requirements.txt
+  Danh sach cac thu vien Python can cai de chay du an.
+
+KET QUA TONG QUAN: RESULTS\TABLES
+---------------------------------
+results\tables\e1_baseline.csv
+  Chi so baseline theo tang eval: so anh, precision, recall, F1, sai lech lan va thong ke do sang.
+
+results\tables\e2_sweep.csv
+  Ket qua tung gia tri tham so E2 tren dev, gom diem shadow-robust, F1 shadow va cot eligible.
+
+results\tables\e3_ablation.csv
+  Chi so theo tang cua P day du, cac bien the tat thanh phan va baseline.
+
+KET QUA TONG QUAN: RESULTS\FIGURES
+----------------------------------
+results\figures\e2_curves.png
+  Do thi diem shadow-robust tren dev theo cac tham so E2 duoc ve: thr_scale, radius, delta va smooth.
+
+results\figures\e2_intermediate.png
+  Anh minh hoa cac buoc xu ly cua P tren mot anh dev: anh xam, chuan hoa, gradient, bien,
+  accumulator Hough va duong du doan cua baseline/P.
+
+results\figures\e3_ablation.png
+  Bieu do cot so sanh F1 cua cac cau hinh detector tren tung tang eval.
+
+======================================================================
+PHAN MO TA CHI TIET LUONG XU LY
+Tai lieu dau vao de Claude soan bao cao Word
+======================================================================
+
+1. MUC DICH VA PHAM VI
+----------------------
+Du an phat hien vach lan tren anh duong pho trong dieu kien chieu sang khong dong deu.
+Hai bo phat hien duoc doi chieu:
+  - Baseline: Gaussian blur -> Canny voi nguong co dinh -> Hough cua OpenCV.
+  - P (proposed): chuan hoa chieu sang -> Canny tu cai dat -> Hough gioi han huong theo gradient.
+
+Ket qua cua P khong duoc mac dinh xem la tot hon baseline. Can bao cao F1 theo tung tang,
+ghi ro so anh, dung vai tro dev/eval va neu han che ve du lieu.
+
+2. LUONG XU LY TONG THE
+-----------------------
+Du lieu anh + nhan .lines.txt
+    -> tools.make_stratification (thong ke bo du lieu, neu can)
+    -> utils.load_items / _read (doc anh, doc toa do nhan, resize)
+    -> run_baseline va run_proposed (du doan vach lan)
+    -> utils.match_lanes (so khop du doan voi nhan)
+    -> utils.evaluate / evaluate_by_tier (tong hop P, R, F1, sai lech va thoi gian)
+    -> experiments E1-E4 (bang CSV, hinh PNG, anh minh hoa).
+
+Duong chay tong hop trong run_all.py:
+    1) tools.make_stratification
+    2) experiments.e2_params
+    3) experiments.e1_challenge
+    4) experiments.e3_ablation
+    5) experiments.e4_breaking_point
+E2 chay truoc vi no luu results/best_params.json de cac buoc sau nap lai.
+compare_images.py va export_all.py la cac cong cu chay rieng, khong nam trong run_all.py.
+
+3. DU LIEU VA DOC NHAN
+----------------------
+- Moi anh JPG/JPEG/PNG can co file cung ten voi duoi .lines.txt.
+- Moi dong nhan la toa do cac diem (x,y) cua mot vach lan.
+- utils._read doc anh grayscale va resize theo config.SCALE = 0.5.
+- Toa do nhan cung duoc nhan 0.5; diem co x am bi loai; vach con it nhat 2 diem moi duoc giu.
+- utils._images chi dua anh vao tap neu tim thay file nhan tuong ung.
+- Dev duoc dung de chon tham so; eval duoc dung de bao cao ket qua. Tuy nhien, bo eval
+  shadow hien tai co anh tu cung video driver_37_30frame/05181432_0203.MP4 voi dev.
+  Vi vay ket qua shadow eval khong phai kiem tra doc lap theo video; phai neu ro han che nay.
+- data/danh_sach_tang.csv la bang gan anh vao split/tang; data/stratification.csv la thong ke
+  anh, video, chi so sang va so vach nhan.
+
+4. HAI PIPELINE PHAT HIEN
+-------------------------
+4.1 Baseline (baseline.py)
+  Buoc 1: tao ROI hinh thang chung tu utils.roi_mask.
+  Buoc 2: lam mo Gaussian 5x5 de giam nhieu.
+  Buoc 3: cv2.Canny voi b_lo va b_hi trong Params.
+  Buoc 4: loai canh ngoai ROI.
+  Buoc 5: cv2.HoughLines tim duong trong hai khoang goc; bo qua duong gan ngang theo
+          MIN_HORIZ_DEG; nguong vote dung b_thresh.
+  Buoc 6: utils.postprocess_lines loc duong gan ngang, loai duong trung gan nhau va
+          giu toi da MAX_LANES duong.
+  Dau ra: danh sach duong (rho, theta, score); debug=True tra them anh canh.
+
+4.2 Phuong phap de xuat P (proposed.py)
+  Buoc 1 - ROI rieng: tao ROI P bang p_roi_top, p_roi_x_left, p_roi_x_right.
+          ROI nay chi gioi han phat hien; ROI cham diem van dung ROI chung.
+  Buoc 2 - loc va chuan hoa: Gaussian sigma; neu use_norm=True thi chia anh loc cho
+          local mean + 1. Local mean tinh nhanh bang integral image voi cua so radius.
+  Buoc 3 - gradient: tinh gx, gy bang Sobel tu cai dat; magnitude = sqrt(gx^2 + gy^2),
+          huong gradient tinh bang atan2.
+  Buoc 4 - tao canh: non-maximum suppression luong tu huong thanh 4 nhom; hysteresis
+          gom cac diem canh yeu lien thong voi diem vuot nguong manh.
+          Nguong chon theo anh da chuan hoa hoac raw, sau do nhan thr_scale.
+  Buoc 5 - Hough theo gradient: moi diem canh bo phieu vao cac goc gan huong gradient
+          trong khoang delta; use_vote=False thi bo phieu tren moi goc.
+          Bo dem Hough su dung buoc rho/theta mac dinh 2 px/1 do.
+  Buoc 6 - tim dinh: lam min bo dem neu smooth > 0, non-maximum suppression tren
+          accumulator, loc dinh theo nguong vote va lay cac dinh manh nhat.
+  Buoc 7: postprocess chung loai duong khong hop le/trung nhau va gioi han so duong.
+  Debug mode tra edges, norm, mag va accumulator A de tao hinh trung gian.
+
+4.3 Tham so dang luu trong results/best_params.json
+  Baseline: b_lo=30, b_hi=90, b_thresh=25.
+  P: use_norm=true, use_vote=true, sigma=1.5, radius=15, thr_scale=0.45,
+     delta=6.0, smooth=0.0, peak_nms=3.
+  ROI P: top=0.55, x_left=0.35, x_right=0.60.
+  Day la tham so dang co trong file hien tai; neu E2 chay lai, JSON co the thay doi.
+
+5. CACH TINH DIEM
+-----------------
+- utils.match_lanes ve moi vach thanh mask co be rong gan LANE_W * SCALE.
+- Phan tren ROI_TOP bi cat bo truoc khi tinh giao/hop.
+- Tinh IoU giua tung duong du doan va tung vach ground truth.
+- Dung Hungarian assignment de ghep cap toi uu; cap chi tinh TP neu IoU > IOU_THRESH
+  (mac dinh 0.5). Du doan khong ghep la FP; vach nhan khong ghep la FN.
+- Precision = TP/(TP+FP), Recall = TP/(TP+FN), F1 = 2TP/(2TP+FP+FN).
+- F1 tong hop la micro-F1 tren tong TP/FP/FN, khong phai trung binh F1 tung anh.
+- Sai lech ngang tinh tai hang y=0.9H tren cac vach ghep dung; thoi gian xu ly la ms/anh.
+- utils.evaluate_by_tier tach ket qua theo ten tier cua Item.
+
+6. CHI TIET TUNG FILE PYTHON
+----------------------------
+6.1 File o thu muc goc
+
+baseline.py
+  - canny_fixed: Gaussian blur + Canny co dinh + mask ROI.
+  - hough_standard: goi HoughLines cua OpenCV cho hai khoang theta; tra rho, theta, score.
+  - run_baseline: noi pipeline baseline; debug=True tra them edges.
+
+config.py
+  - ROOT, DATA_ROOT, DATA, RESULTS: xac dinh thu muc du an va data/results.
+  - resolve_data_path: chuan hoa duong dan va tu choi duong dan nam ngoai data/.
+  - DATA co the doi bang bien moi truong LANE_DATA nhung van phai nam trong data/.
+  - _tiers/TIERS: phat hien cac thu muc tier trong eval.
+  - Params: tap hop tham so cho baseline va P.
+  - Cac hang so ROI, scale anh, rong vach nhan, nguong IoU va so vach toi da.
+
+proposed.py
+  - integral_image/local_mean: tinh anh tich phan va trung binh cuc bo.
+  - illumination_norm: loc Gaussian, tuy chon chuan hoa theo nen sang cuc bo.
+  - sobel: tinh gradient gx/gy.
+  - non_max_suppression: giu cuc dai gradient doc theo huong.
+  - hysteresis/canny_adaptive: tao canh bang nguong yeu/manh va lien thong.
+  - hough_vote: cong don diem vao accumulator, co the gioi han theo gradient.
+  - find_peaks/hough_gradient: loc va chon cac duong Hough manh.
+  - run_proposed: noi cac buoc P va tuy chon tra thong tin debug.
+
+utils.py
+  - Item: goi thong tin tier, path, anh grayscale va ground truth.
+  - roi_mask/line_x/postprocess_lines: tao ROI, chuyen duong sang toa do x va loc duong.
+  - _images/_read/load_items: tim anh co nhan, doc/resize anh va nap split.
+  - match_lanes: tao mask, tinh IoU, ghep Hungarian va tra TP/FP/FN.
+  - evaluate/evaluate_by_tier: tong hop chi so va tach theo tier.
+  - illum_stats: do do lech chuan, illum_ratio va mean brightness trong ROI.
+  - write_table/figures_dir: tao thu muc va ghi CSV/hinh ket qua.
+  - overlay: ve du doan do; co tuy chon ve ground truth va anh canh.
+  - load_params/save_params: nap/ghi results/best_params.json.
+  - video_id: rut ten video goc tu ten anh frame.
+
+run_all.py
+  - Nhan tuy chon --max va chuyen tham so nay cho cac thi nghiem.
+  - Chay tung module bang subprocess voi check=True; loi o mot buoc se dung chuoi chay.
+  - Khong chay compare_images.py hoac export_all.py.
+
+6.2 Thu muc experiments
+
+experiments\__init__.py
+  - Danh dau thu muc la package; khong chua pipeline xu ly rieng.
+
+experiments\e1_challenge.py
+  - Nap tham so va anh eval; chay baseline tren toan bo anh.
+  - Nhom ket qua theo tier; tinh precision, recall, F1, sai lech va thong ke chieu sang.
+  - Ghi results/tables/e1_baseline.csv.
+  - Tim 3 anh co F1 thap nhat moi tier va ghi vao results/failure_cases/.
+
+experiments\e2_params.py
+  - Nap dev va gan lai tier theo thu muc cha normal/hlight/shadow.
+  - Tinh illum_ratio; lay nguong phan vi 75% va tao nhom anh contrast cao.
+  - Tinh F1 shadow, F1 tung video tren nhom contrast va F1 cac tier con lai.
+  - Diem chon = 0.50*F1_shadow + 0.25*contrast_video_F1
+                 + 0.25*mean_F1_cac_tier_khac.
+  - Tim baseline tham khao; chi chap nhan candidate P neu F1 shadow >= baseline shadow dev.
+  - Quet lan luot thr_scale, radius, delta, smooth, peak_nms va hinh hoc ROI P;
+    tinh them mot luot tinh chinh thr_scale.
+  - Luu tham so P, CSV sweep, do thi tham so va hinh cac buoc trung gian.
+  - Luu y: sweep la coordinate search, khong phai tim kiem toan cuc tren moi to hop tham so.
+
+experiments\e3_ablation.py
+  - Nap tham so duoc E2 chon; nap eval va dev.
+  - Tren dev, chon thr_scale cho bien the tat chuan hoa trong tap {0.5, 1, 2, 4}.
+  - Tren eval, so sanh P day du, P use_norm=False, P use_vote=False va baseline.
+  - Ghi F1/precision/recall/sai lech/thoi gian vao e3_ablation.csv.
+  - Ve e3_ablation.png de so sanh F1 theo tier.
+
+experiments\e4_breaking_point.py
+  - Chi nap eval/normal lam can cu tao bong tong hop.
+  - Do tuong phan median giua vach va vung xung quanh; in du doan d* truoc vong thi nghiem.
+  - Tao mask bong logistic voi hai do mem bien; giam cuong do anh theo cac depth co dinh
+    va them nhieu Gaussian theo sigma noise.
+  - Chay baseline/P tren tung depth; tim diem dau tien F1 con duoi 50% F1 tai depth 0.
+  - Ghi results/tables/e4_break.csv va results/figures/e4_break.png.
+  - Day la thi nghiem bong nhan tao, khong phai tap shadow tu nhien.
+
+experiments\compare_images.py
+  - Mac dinh danh gia tung anh eval, xep theo chenh lech F1 P - baseline.
+  - Xuat toi da k anh P thang moi tier; --all se chon anh baseline kem nhat neu khong co P thang.
+  - --image cho phep chi dinh mot anh trong data/; duong dan ngoai data/ bi tu choi.
+  - Anh ghep gom anh goc, ket qua hai detector, anh chuan hoa va hai ban do canh.
+
+experiments\export_all.py
+  - Chay baseline va P tren eval; --dev de them dev, --max de gioi han so anh moi tier.
+  - Voi moi anh tao panel goc, overlay du doan, anh chuan hoa va edges.
+  - Ghi anh vao results/all_images/<tier>/ va F1 tung anh vao results/tables/per_image.csv.
+
+6.3 Thu muc tools
+
+tools\__init__.py
+  - Danh dau thu muc la package; khong chua thao tac du lieu rieng.
+
+tools\make_stratification.py
+  - Doc cac anh dev va cac tier eval dang co.
+  - Tinh illum_std, illum_ratio, mean_lum, so vach ground truth va video cho tung anh.
+  - Ghi data/stratification.csv va in thong ke theo split/tier.
+  - Script hien tai khong in canh bao trung video.
+
+tools\resplit_data.py
+  - Nhan --src, --out, ti le dev, so anh moi tier va seed.
+  - Chi chap nhan src/out nam trong data/ va khong duoc long nhau.
+  - Gom anh theo video; neu qua it video thi chia video thanh nhom frame nho.
+  - Do illum_ratio, tach eval thanh light/medium/heavy theo hai phan vi.
+  - Chon mau dev/eval, copy anh va .lines.txt, ghi stratification.csv.
+
+7. Y NGHIA CAC FILE KET QUA DANG CO
+-----------------------------------
+7.1 Bang CSV
+
+results\tables\e1_baseline.csv
+  - Moi dong la mot tier eval.
+  - Cot n: so anh; precision/recall/F1: hieu nang baseline.
+  - lat_px: sai lech ngang; illum_std/illum_ratio/mean_lum: dac diem sang.
+  - mean_gt_lanes: trung binh so vach nhan tren moi anh.
+  - Gia tri dang luu: normal n=214 F1=0.169; hlight n=87 F1=0.135;
+    shadow n=9 F1=0.127.
+
+results\tables\e2_sweep.csv
+  - Moi dong la mot candidate baseline/P trong tung buoc quet.
+  - param/value: ten va gia tri tham so; score: diem chon shadow-robust tren dev.
+  - f1: F1 trung binh cac tier theo cach script tong hop; shadow_f1: F1 rieng shadow.
+  - contrast_video_f1: trung binh F1 theo video tren nhom illum_ratio cao.
+  - eligible: candidate P co dat dieu kien shadow F1 >= baseline shadow hay khong.
+  - precision/recall/ms: chi so phu va thoi gian xu ly.
+  - Ket qua hien tai ghi baseline shadow F1 dev=0.1299; P shadow F1 dev=0.1961;
+    score P=0.2029. Day la ket qua dev, khong phai eval.
+
+results\tables\e3_ablation.csv
+  - Moi dong la mot cau hinh detector tren mot tier eval.
+  - Cot config/tier/n xac dinh cau hinh, nhom anh va so anh.
+  - Cot f1/precision/recall/lat_px/ms la chi so tuong ung.
+  - Gia tri dang luu: P day du F1 normal/hlight/shadow = 0.264/0.218/0.227;
+    baseline = 0.169/0.135/0.127.
+  - Shadow eval chi co 9 anh va dung chung video voi dev; khong dien giai ket qua nay
+    nhu mot danh gia doc lap hoac bang chung tong quat hoa.
+
+results\tables\e4_break.csv
+  - Moi dong la mot thuat toan (baseline/P), kieu bien bong (cung/mem) va do sau bong.
+  - Cot method/edge/depth la dieu kien thi nghiem; f1/precision/recall la chi so tren
+    tap eval/normal sau khi tao bong nhan tao.
+  - F1 baseline bien cung giam tu 0.167 tai depth 0 xuong 0.096 tai 0.95.
+  - F1 P bien cung giam tu 0.263 xuong 0.152; bien mem tai 0.95 dat 0.212.
+  - Trong cac depth da thu, khong dong nao cua P hoac baseline giam duoi mot nua F1 goc;
+    do vay cot diem gay bao None neu tinh theo nguong 50%.
+
+7.2 Hinh PNG
+
+results\figures\e2_curves.png
+  - Bieu dien score tren dev theo thr_scale, radius, delta va smooth.
+  - Hinh co bon o; cac tham so khac trong sweep can tra bang e2_sweep.csv.
+  - Diem score chi the hien candidate hop le theo rang buoc shadow baseline.
+
+results\figures\e2_intermediate.png
+  - Chon anh dev co illum_ratio cao nhat trong danh sach dang nap.
+  - Hang tren: anh xam, anh sau chuan hoa, magnitude gradient, canh baseline,
+    canh P khi tat normalization.
+  - Hang duoi: canh P day du, accumulator Hough khi tat vote gradient, accumulator
+    khi bat vote gradient, overlay baseline va overlay P.
+  - Day la hinh giai thich pipeline, khong phai ket qua tong hop tren toan bo tap.
+
+results\figures\e3_ablation.png
+  - Bieu do cot F1 theo tier cho P day du, P tat chuan hoa, P tat gradient voting va baseline.
+  - So lieu nguon la results/tables/e3_ablation.csv.
+
+results\figures\e4_break.png
+  - Bieu do F1 theo do sau bong, so sanh baseline/P voi bien bong cung va mem.
+  - Duong doc dut la diem gay du doan tu tuong phan vach; du lieu duoc tao bong nhan tao.
+  - So lieu chinh xac doc trong results/tables/e4_break.csv.
+
+7.3 Dau ra khac duoc tao boi code
+  - E1: results/failure_cases/e1_<tier>_<rank>_f1_<score>.png.
+  - E4: results/tables/e4_break.csv va results/figures/e4_break.png.
+  - compare_images: results/comparison/.
+  - export_all: results/all_images/ va results/tables/per_image.csv.
+  - Anh compare/export phu thuoc cac lenh rieng; khong duoc nham voi cac bang/hinh tong hop E1-E4.
+
+8. GHI CHU CHO CLAUDE KHI SOAN WORD
+-----------------------------------
+- Co the to chuc Word theo thu tu: bai toan -> du lieu -> baseline/P -> luong xu ly
+  -> phuong phap danh gia -> E1-E4 -> ket qua -> han che/ket luan.
+- Dung so lieu dang co trong CSV; neu chay lai, doi chieu lai truoc khi ghi so vao Word.
+- Phan biet ket qua dev (E2 chon tham so) va eval (E1/E3 danh gia).
+- Neu nhac F1 eval shadow, bat buoc ghi n=9 va canh bao video shadow bi trung dev.
+- Khong viet rang P luon tot hon baseline: ket qua phu thuoc tier va tap du lieu.
+- E4 la bong mo phong. Khong dien giai no nhu ket qua tren bong that.
+- README hien co huong dan experiments.demo_video, nhung trong danh sach ma Python hien tai
+  khong co experiments/demo_video.py; can kiem tra lai truoc khi mo ta chuc nang video.
+- Khong tu suy dien chuyen dong video, nhan sai so, hoac co che hoc may; day la pipeline
+  xu ly anh co luat/tham so, khong phai mo hinh deep learning.
+
