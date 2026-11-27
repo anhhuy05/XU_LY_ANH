@@ -1,0 +1,4 @@
+tier,n,precision,recall,f1,lat_px,illum_std,illum_ratio,mean_lum,mean_gt_lanes
+normal,214,0.167,0.197,0.181,15.6,38.02,0.714,76.2,3.39
+hlight,87,0.144,0.158,0.15,15.9,47.86,0.778,84.1,3.64
+shadow,9,0.111,0.148,0.127,10.7,40.17,0.738,76.7,3.0
